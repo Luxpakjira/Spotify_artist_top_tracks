@@ -10,8 +10,8 @@ import {
 } from "react-bootstrap";
 import { response } from "express";
 
-const CLIENT_ID = "ba12e852596d4f21980aa0dae89c6403";
-const CLIENT_SECRET = "e792d58a4f364cfe8096952873deee7c";
+const CLIENT_ID = YourClientID;
+const CLIENT_SECRET = YourClientSecret;
 
 function App() {
   const [searchInput, setSearchInput] = useState("");
