@@ -16,39 +16,58 @@ const CLIENT_SECRET = "e792d58a4f364cfe8096952873deee7c";
 function App() {
   const [searchInput, setSearchInput] = useState("");
   const [accessToken, setAccessToken] = useState("");
+  const [tracks, setTracks] = useState([]);
 
-  useEffect(()=>{
+  useEffect(() => {
     var authParam = {
-      method: 'POST',
-      headers:  {
-        'Authorization': 'Basic ' + window.btoa(CLIENT_ID + ':' + CLIENT_SECRET)
-      ,
-        'Content-Type': 'application/x-www-form-urlencoded'
+      method: "POST",
+      headers: {
+        Authorization: "Basic " + window.btoa(CLIENT_ID + ":" + CLIENT_SECRET),
+        "Content-Type": "application/x-www-form-urlencoded",
       },
-      body:'grant_type=client_credentials'
-    }
+      body: "grant_type=client_credentials",
+    };
 
-    fetch('https://accounts.spotify.com/api/token',authParam)
-    .then(result => result.json())
-    .then(data => setAccessToken(data.access_token))
-  },[])
+    fetch("https://accounts.spotify.com/api/token", authParam)
+      .then((result) => result.json())
+      .then((data) => setAccessToken(data.access_token));
+  }, []);
 
-//Search 
-    
+  //Search
 
   async function search() {
-    console.log("Search for "+searchInput);
+    console.log("Search for " + searchInput);
     //GET request using search to get the artistID
-    var artistParams = {
-      method:'GET',
-      headers:{
-        "Authorization": "Bearer "+accessToken
-      }
-    }
-    var artistID=await fetch('https://api.spotify.com/v1/search?q='+searchInput+'&type=artist',artistParams)
-    .then(response=>response.json)
-    .then(data=>{return data.artists.items[0].id})
+    var searchParams = {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+      },
+    };
+    var artistID = await fetch(
+      "https://api.spotify.com/v1/search?q=" + searchInput + "&type=artist",
+      searchParams
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        return data.artists.items[0].id;
+      });
+
+    console.log("Artist ID: " + artistID);
+
+    var topTracks = await fetch(
+      "https://api.spotify.com/v1/artists/" +
+        artistID +
+        "/top-tracks?country=US",
+      searchParams
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        setTracks(data.tracks);
+      });
   }
+  console.log(tracks);
 
   return (
     <div className="App">
@@ -66,7 +85,7 @@ function App() {
           />
           <Button
             onClick={() => {
-              search();;
+              search();
             }}
           >
             Search
@@ -74,13 +93,21 @@ function App() {
         </InputGroup>
       </Container>
       <Container>
-        <Row className="mx-2 row row-cols-4">
-          <Card>
-            <Card.Img src="#"/>
-            <Card.Body>
-              <Card.Title>Album Name</Card.Title>
-            </Card.Body>
-          </Card>
+        <Row className="card mb-3  col-md-4">
+          {tracks.length > 0 ? (
+            tracks.map((track, i) => (
+              <Card key={i}>
+                {track.album.images.length > 0 && (
+                  <Card.Img src={track.album.images[0].url} alt={track.name} />
+                )}
+                <Card.Body>
+                  <Card.Title>{track.name}</Card.Title>
+                </Card.Body>
+              </Card>
+            ))
+          ) : (
+            <p>No tracks to display</p>
+          )}
         </Row>
       </Container>
     </div>
